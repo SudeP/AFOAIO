@@ -1,0 +1,6 @@
+C:\Users\Acand\source\repos\AFOAIO\AFOAIO\bin\Debug\AFOAIO.dll
+C:\Users\Acand\source\repos\AFOAIO\AFOAIO\bin\Debug\AFOAIO.pdb
+C:\Users\Acand\source\repos\AFOAIO\AFOAIO\obj\Debug\AFOAIO.csproj.CoreCompileInputs.cache
+C:\Users\Acand\source\repos\AFOAIO\AFOAIO\obj\Debug\AFOAIO.dll
+C:\Users\Acand\source\repos\AFOAIO\AFOAIO\obj\Debug\AFOAIO.pdb
+C:\Users\Acand\source\repos\AFOAIO\AFOAIO\obj\Debug\AFOAIO.csprojAssemblyReference.cache

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2048
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AFOAIO", "AFOAIO\AFOAIO.csproj", "{01C91E6F-B709-4928-83BF-42D07748F313}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{01C91E6F-B709-4928-83BF-42D07748F313}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01C91E6F-B709-4928-83BF-42D07748F313}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01C91E6F-B709-4928-83BF-42D07748F313}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01C91E6F-B709-4928-83BF-42D07748F313}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {10A10FC0-8779-4F34-85D8-15C54A7F1061}
+	EndGlobalSection
+EndGlobal
