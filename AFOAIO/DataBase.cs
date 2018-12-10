@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace AFOAIO
 {
     public class DataBase : Html
@@ -15,10 +10,14 @@ namespace AFOAIO
         private SqlCommand sqlCommand;
         private SqlDataReader sqlDataReader;
         private SqlDataAdapter sqlDataAdapter;
-        private string connectionString;
-        private string _Komutmetni;
+        private string _CommandString;
         private int answerint;
-        public string ConnectionString { get => connectionString; set => connectionString = value; }
+        private string connectionString;
+        private bool readyConnection = false;
+        private bool showQuery = false;
+        public string D_ConnectionString { get => connectionString; set => connectionString = value; }
+        public bool D_ReadyConnection { get => readyConnection; set => readyConnection = value; }
+        public bool D_ShowQuery { get => showQuery; set => showQuery = value; }
         #endregion
         #region Functions
         #region State Control Functions
@@ -33,23 +32,23 @@ namespace AFOAIO
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
-                base.Log("Bağlantı yeniden kuruluyor...");
-                Connection_Open(connection);
+                base.T_Log(ex.Message);
+                base.T_Log("Bağlantı yeniden kuruluyor...");
+                if (readyConnection) Connection_Open(connection);
             }
         }
         private void Connection_Close(SqlConnection Connection)
         {
             try
             {
-                if (Connection.State == System.Data.ConnectionState.Open)
+                if (Connection.State != System.Data.ConnectionState.Closed)
                 {
                     Connection.Close();
                 }
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
+                base.T_Log(ex.Message);
             }
         }
         private void Reader_Close(SqlDataReader Reader)
@@ -59,51 +58,56 @@ namespace AFOAIO
                 Reader.Close();
             }
         }
-        private void Verify()
+        private void Verify(string ConnectionString)
         {
             if (sqlCommand == null) { sqlCommand = new SqlCommand(); }
             if (sqlConnection == null) { sqlConnection = new SqlConnection(); }
-            Connection_Close(sqlConnection);
-            sqlConnection.ConnectionString = ConnectionString;
+            Reader_Close(sqlDataReader);
+            if (sqlConnection.ConnectionString != ConnectionString)
+            {
+                Connection_Close(sqlConnection);
+                while (sqlConnection.State != ConnectionState.Closed) T_Wait(100);
+                sqlConnection.ConnectionString = ConnectionString;
+            }
             Connection_Open(sqlConnection);
         }
         #endregion
         #region ExecuteNonQuery
-        public int ExecuteNonQuery(String CommandText)
+        public int D_ExecuteNonQuery(String CommandText)
         {
-            WorkBody(CommandText, ConnectionString, "ExecuteNonQuery");
+            WorkBody(CommandText, D_ConnectionString, "ExecuteNonQuery");
             return answerint;
         }
-        public int ExecuteNonQuery(String CommandText, String ConnectionString)
+        public int D_ExecuteNonQuery(String CommandText, String ConnectionString)
         {
             WorkBody(CommandText, ConnectionString, "ExecuteNonQuery");
             return answerint;
         }
         #endregion
         #region ExecuteReader
-        public SqlDataReader ExecuteReader(String CommandText)
+        public SqlDataReader D_ExecuteReader(String CommandText)
+        {
+            WorkBody(CommandText, D_ConnectionString, "SqlDataReader");
+            return sqlDataReader;
+        }
+        public SqlDataReader D_ExecuteReader(String CommandText, String ConnectionString)
         {
             WorkBody(CommandText, ConnectionString, "SqlDataReader");
             return sqlDataReader;
         }
-        public SqlDataReader ExecuteReader(String CommandText, String ConnectionString)
-        {
-            WorkBody(CommandText, ConnectionString, "SqlDataReader");
-            return sqlDataReader;
-        }
-        public SqlDataAdapter ExecuteAdapter(String CommandText, String ConnectionString)
+        public SqlDataAdapter D_ExecuteAdapter(String CommandText, String ConnectionString)
         {
             WorkBody(CommandText, ConnectionString, "SqlDataAdapter");
             return sqlDataAdapter;
         }
         #endregion
         #region ExecuteScalar
-        public int ExecuteScalar(String CommandText)
+        public int D_ExecuteScalar(String CommandText)
         {
-            WorkBody(CommandText, ConnectionString, "ExecuteScalar");
+            WorkBody(CommandText, D_ConnectionString, "ExecuteScalar");
             return answerint;
         }
-        public int ExecuteScalar(String CommandText, String ConnectionString)
+        public int D_ExecuteScalar(String CommandText, String ConnectionString)
         {
             WorkBody(CommandText, ConnectionString, "ExecuteScalar");
             return answerint;
@@ -111,13 +115,21 @@ namespace AFOAIO
         #endregion
         #region Extra
         /// <summary>
-        ///  ' Index = 2; ' for Tables - ' Index = 0; ' for Databases
+        ///  ' Index = 2; ' for Tables \-.-.-/ ' Index = 0; ' for Databases
         /// </summary>
-        public bool GetSchema(string CollectionName, string SearchWord, int ColumnIndex)
+        public bool D_GetSchema(string CollectionName, string SearchWord, int ColumnIndex)
+        {
+            return D_GetSchema(CollectionName, SearchWord, ColumnIndex, "");
+        }
+        public bool D_GetSchema(string CollectionName, string SearchWord, int ColumnIndex, string ConnectionString)
+        {
+            return D_GetSchema(CollectionName, SearchWord, ColumnIndex, ConnectionString);
+        }
+        private bool GetSchema(string CollectionName, string SearchWord, int ColumnIndex, string ConnectionString)
         {
             try
             {
-                Verify();
+                Verify(ConnectionString);
                 foreach (DataRow row in sqlConnection.GetSchema(CollectionName).Rows)
                 {
                     if (row[ColumnIndex].ToString() == SearchWord)
@@ -128,44 +140,46 @@ namespace AFOAIO
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
+                base.T_Log(ex.Message);
             }
             return false;
         }
         #endregion
         #region Main Functions
-        private void WorkBody(String Komutmetni, String ConnectionString, String WorkName)
+        private void WorkBody(String CommandString, String ConnectionString, String WorkName)
         {
             try
             {
-                Verify();
-                _Komutmetni = Komutmetni;
+            Verify:
+                Verify(ConnectionString);
+                if (sqlConnection.State == ConnectionState.Open) goto Verify;
+                    _CommandString = CommandString;
                 sqlCommand.Connection = sqlConnection;
-                sqlCommand.CommandText = _Komutmetni;
+                sqlCommand.CommandText = _CommandString;
                 switch (WorkName)
                 {
                     case "ExecuteNonQuery":
                         answerint = sqlCommand.ExecuteNonQuery();
-                        base.Log((Komutmetni.Split(' '))[0] + " işlemi gerçekleştirildi. Dönen değer/tip : " + answerint);
+                        if (showQuery) base.T_Log((CommandString.Split(' '))[0].Replace("\r\n", " ") + " işlemi gerçekleştirildi. Dönen değer/tip : " + answerint);
                         break;
                     case "SqlDataReader":
                         sqlDataReader = sqlCommand.ExecuteReader();
-                        base.Log((Komutmetni.Split(' '))[0] + " işlemi gerçekleştirildi. Dönen değer/tip : " + sqlDataReader.ToString());
+                        if (showQuery) base.T_Log((CommandString.Split(' '))[0].Replace("\r\n", " ") + " işlemi gerçekleştirildi. Dönen değer/tip : " + sqlDataReader.ToString());
                         break;
                     case "SqlDataAdapter":
-                        sqlDataAdapter = new SqlDataAdapter(_Komutmetni, ConnectionString);
-                        base.Log((Komutmetni.Split(' '))[0] + " işlemi gerçekleştirildi. Dönen değer/tip : " + sqlDataAdapter.ToString());
+                        sqlDataAdapter = new SqlDataAdapter(_CommandString, ConnectionString);
+                        if (showQuery) base.T_Log((CommandString.Split(' '))[0].Replace("\r\n", " ") + " işlemi gerçekleştirildi. Dönen değer/tip : " + sqlDataAdapter.ToString());
                         break;
                     case "ExecuteScalar":
                         var altans = sqlCommand.ExecuteScalar();
                         answerint = altans != null ? Convert.ToInt32(altans) : 0;
-                        base.Log((Komutmetni.Split(' '))[0] + " işlemi gerçekleştirildi. Dönen değer/tip : " + answerint);
+                        if (showQuery) base.T_Log((CommandString.Split(' '))[0].Replace("\r\n", " ") + " işlemi gerçekleştirildi. Dönen değer/tip : " + answerint);
                         break;
                 }
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
+                base.T_Log(ex.Message);
             }
         }
         #endregion

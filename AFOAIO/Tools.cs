@@ -10,18 +10,22 @@ namespace AFOAIO
     public class Tools : LocalWriter
     {
         #region Fields
-        public TextBox TbxLog;
+        public TextBox T_TbxLog;
         private int answer;
         #endregion
         #region Funtions
-        public void Log(string txt)
+        public void T_Log(string txt)
         {
-            if (TbxLog.Text.Length > 5000) { TbxLog.Text = string.Empty; }
-            TbxLog.Text += DateTime.Now.ToString("dd MMM") + " - " + DateTime.Now.ToString("HH:mm:ss") + "  --  " + txt + Environment.NewLine;
-            TbxLog.SelectionStart = TbxLog.TextLength;
-            TbxLog.ScrollToCaret();
+            if (T_TbxLog.Text.Length > 5000) { T_TbxLog.Text = string.Empty; }
+            T_TbxLog.Text += DateTime.Now.ToString("HH:mm:ss") + "  --  " + txt + Environment.NewLine;
+            T_TbxLog.SelectionStart = T_TbxLog.TextLength;
+            T_TbxLog.ScrollToCaret();
         }
-        public void Wait(int sure)
+        public void T_ClearLog()
+        {
+            T_TbxLog.Text = string.Empty;
+        }
+        public void T_Wait(int sure)
         {
             DateTime t = DateTime.Now.AddMilliseconds(sure);
             int i = 0;
@@ -32,7 +36,7 @@ namespace AFOAIO
                 i++;
             }
         }
-        public string HtmlTextClear(string text)
+        public string T_HtmlTextClear(string text)
         {
             text = text.Replace("'", " ");
             text = text.Replace("\"", " ");
@@ -45,7 +49,7 @@ namespace AFOAIO
             text = text.Replace("&#39;", "'");
             return text;
         }
-        public int Matches(String Text, String Piece)
+        public int T_Matches(String Text, String Piece)
         {
             answer = 0;
             Text = Text.ToLower();

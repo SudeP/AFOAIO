@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mshtml;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -9,7 +10,7 @@ namespace AFOAIO
     public class Html : Tools
     {
         #region Fields
-        private WebRequest rq;
+        private WebRequest Rq;
         private bool answer_bool;
         private string HTML;
         private DateTime dateTime;
@@ -21,11 +22,19 @@ namespace AFOAIO
         #endregion
         #region Functions
         #region MainFuntions
-        public HtmlElement GetElement(string Html, string ElementType)
+        public void H_jsExecute(string js, HtmlDocument doc)
+        {
+            js = js.Replace(@"\\", "");
+            HtmlElement scriptElement = doc.CreateElement("script");
+            IHTMLScriptElement element = (IHTMLScriptElement)scriptElement.DomElement;
+            element.text = "" + js + "";
+            doc.GetElementsByTagName("head")[0].AppendChild(scriptElement);
+        }
+        public HtmlElement H_GetElement(string Html, string ElementType)
         {
             Html = ChangeMyClass(Html.Replace(AnotherKey + "-", "class=\"").Replace("-" + AnotherKey, "\""), AnotherKey);
             HtmlElement htmlElement = null;
-            WebBrowser browser = StringToBrowser(Html);
+            WebBrowser browser = H_StringToBrowser(Html);
             foreach (HtmlElement element in browser.Document.GetElementsByTagName(NonTurkhis(ElementType.Split('.')[0])))
             {
                 string text = element.OuterHtml.Substring(0, element.OuterHtml.IndexOf(">"));
@@ -43,11 +52,11 @@ namespace AFOAIO
             }
             return htmlElement;
         }
-        public List<HtmlElement> GetElements(string Html, string ElementType)
+        public List<HtmlElement> H_GetElements(string Html, string ElementType)
         {
             Html = ChangeMyClass(Html.Replace(AnotherKey + "-", "class=\"").Replace("-" + AnotherKey, "\""), AnotherKey);
             elements = new List<HtmlElement>();
-            browser = StringToBrowser(Html);
+            browser = H_StringToBrowser(Html);
             foreach (HtmlElement element in browser.Document.GetElementsByTagName(NonTurkhis(ElementType.Split('.')[0])))
             {
                 string text = element.OuterHtml.Substring(0, element.OuterHtml.IndexOf(">"));
@@ -68,22 +77,24 @@ namespace AFOAIO
         {
             foreach (HtmlElement children in element.Children)
             {
-                if (children.CanHaveChildren) ParserElement(children, ElementType);
                 element.AppendChild(children);
+                if (children.CanHaveChildren) ParserElement(children, ElementType);
             }
         }
-        public HtmlElement GetElement(HtmlDocument htmlDocument, string ElementType)
+        public HtmlElement H_GetElement(HtmlDocument htmlDocument, string ElementType)
         {
             string js = @"
-                        $('" + ElementType + @"').attr('id','acd');
+                        var newelement = $('" + ElementType + @"').cloneNode(true);;
+                        newelement.attr('id','MyElement');
+                        document.body.appendChild(newelement);
                         ".Replace(@"\\", "");
             HtmlElement scriptElement = htmlDocument.CreateElement("script");
             ((mshtml.IHTMLScriptElement)scriptElement.DomElement).text = js;
             htmlDocument.GetElementsByTagName("head")[0].AppendChild(scriptElement);
-            HtmlElement myDiv = htmlDocument.GetElementById("acd");
+            HtmlElement myDiv = htmlDocument.GetElementById("MyElement");
             return myDiv;
         }
-        public bool IsLoaded(string Search, ref WebBrowser webBrowser, int time)
+        public bool H_IsLoaded(string Search, ref WebBrowser webBrowser, int time)
         {
             Temizle();
             dateTime = DateTime.Now.AddSeconds(time);
@@ -110,12 +121,12 @@ namespace AFOAIO
             }
             return answer_bool;
         }
-        public string GetHtml(string url)
+        public string H_GetHtml(string url)
         {
-            rq = WebRequest.Create(url);
-            return (new StreamReader(rq.GetResponse().GetResponseStream())).ReadToEnd();
+            Rq = WebRequest.Create(url);
+            return (new StreamReader(Rq.GetResponse().GetResponseStream())).ReadToEnd();
         }
-        public WebBrowser StringToBrowser(string Html)
+        public WebBrowser H_StringToBrowser(string Html)
         {
             WebBrowser browser = new WebBrowser
             {
@@ -127,7 +138,7 @@ namespace AFOAIO
             browser.Refresh();
             return browser;
         }
-        public void IsOpen(WebBrowser webBrowser)
+        public void H_IsOpen(WebBrowser webBrowser)
         {
             while (true)
             {
@@ -136,12 +147,12 @@ namespace AFOAIO
                 Application.DoEvents();
             }
         }
-        public string Translate(string LanguagePair, string Text)
+        public string H_Translate(string LanguagePair, string Text)
         {
             string url = String.Format("http://www.google.com/translate_t?hl=en&ie=UTF8&text={0}&langpair={1}", Text, LanguagePair);
-            using (WebClient webClient = new WebClient { Encoding = System.Text.Encoding.GetEncoding(1254) })
+            using (WebClient webClient = new WebClient() { Encoding = System.Text.Encoding.GetEncoding(1254) })
             {
-                return HtmlTextClear(StringToBrowser(webClient.DownloadString(url)).Document.GetElementById("result_box").InnerText);
+                return T_HtmlTextClear(H_GetElement(H_StringToBrowser(webClient.DownloadString(url)).Document, "span.tlid-translation.translation span").InnerText);
             }
         }
         #endregion

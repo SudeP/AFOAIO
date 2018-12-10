@@ -27,14 +27,14 @@ namespace AFOAIO
         #endregion
         #region Functions
         #region Write Sql To Csv
-        public void SqlToCsv(string CommandText)
+        public void C_SqlToCsv(string CommandText)
         {
             if (saveFileDialog.ShowDialog() == DialogResult.OK && saveFileDialog.FileName != "")
             {
-                Write(CommandText, this.ConnectionString);
+                Write(CommandText, this.D_ConnectionString);
             }
         }
-        public void SqlToCsv(string CommandText, string Connectionstring)
+        public void C_SqlToCsv(string CommandText, string Connectionstring)
         {
             if (saveFileDialog.ShowDialog() == DialogResult.OK && saveFileDialog.FileName != "")
             {
@@ -45,9 +45,9 @@ namespace AFOAIO
         {
             try
             {
-                base.ExecuteReader("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.Columns WHERE TABLE_NAME = '" + GetTableName(CommandText) + "'");
+                base.D_ExecuteReader("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.Columns WHERE TABLE_NAME = '" + GetTableName(CommandText) + "'");
                 RowCount = 0;
-                sqlDataReader = base.ExecuteReader(CommandText, Connectionstring);
+                sqlDataReader = base.D_ExecuteReader(CommandText, Connectionstring);
                 FieldCount = sqlDataReader.FieldCount;
                 streamWriter = new StreamWriter(saveFileDialog.FileName, false, Encoding.GetEncoding(1254));
                 while (sqlDataReader.Read())
@@ -60,19 +60,18 @@ namespace AFOAIO
                         Application.DoEvents();
                         _Line += sqlDataReader[i] + ";";
                     }
-                    base.Log("Write : " + RowCount);
+                    base.T_Log("Write : " + RowCount);
                     _Line = _Line.Remove(_Line.LastIndexOf(';'));
                     streamWriter.Write(_Line + Environment.NewLine);
                 }
                 streamWriter.Close();
-                base.Log("Write Complated.");
+                base.T_Log("Write Complated.");
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
+                base.T_Log(ex.Message);
             }
         }
-
         private string GetTableName(string CommandText)
         {
             CommandText = CommandText.ToLower();
@@ -83,14 +82,14 @@ namespace AFOAIO
         #endregion
         #region Read Csv To Sql
         #region Insert
-        public void CsvToSql_Insert(string TableName)
+        public void C_CsvToSql_Insert(string TableName)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK && openFileDialog.FileName != "")
             {
-                Read_Insert(TableName, base.ConnectionString);
+                Read_Insert(TableName, base.D_ConnectionString);
             }
         }
-        public void CsvToSql_Insert(string TableName, string Connectionstring)
+        public void C_CsvToSql_Insert(string TableName, string Connectionstring)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK && openFileDialog.FileName != "")
             {
@@ -102,7 +101,7 @@ namespace AFOAIO
             try
             {
                 streamReader = new StreamReader(openFileDialog.FileName, Encoding.GetEncoding(1254));
-                RowCount = base.Matches(streamReader.ReadToEnd(), "\n");
+                RowCount = base.T_Matches(streamReader.ReadToEnd(), "\n");
                 streamReader = new StreamReader(openFileDialog.FileName, Encoding.GetEncoding(1254));
                 _Line = streamReader.ReadLine();
                 _FieldNames = Split(_Line).Replace("'", "");
@@ -112,26 +111,26 @@ namespace AFOAIO
                     Application.DoEvents();
                     _Line = streamReader.ReadLine();
                     _CommandText = "Insert Into " + TableName + "(" + _FieldNames + ") Values (" + Split(_Line) + ")";
-                    base.ExecuteNonQuery(_CommandText, Connectionstring);
-                    base.Log("Read : " + a.ToString() + "/" + (RowCount - 1));
+                    base.D_ExecuteNonQuery(_CommandText, Connectionstring);
+                    base.T_Log("Read : " + a.ToString() + "/" + (RowCount - 1));
                 }
-                base.Log("Read complated.");
+                base.T_Log("Read complated.");
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
+                base.T_Log(ex.Message);
             }
         }
         #endregion
         #region Update
-        public void CsvToSql_Update(string TableName, string Where)
+        public void C_CsvToSql_Update(string TableName, string Where)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK && openFileDialog.FileName != "")
             {
-                Read_Update(TableName, Where, base.ConnectionString);
+                Read_Update(TableName, Where, base.D_ConnectionString);
             }
         }
-        public void CsvToSql_Update(string TableName, string Where, string Connectionstring)
+        public void C_CsvToSql_Update(string TableName, string Where, string Connectionstring)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK && openFileDialog.FileName != "")
             {
@@ -143,7 +142,7 @@ namespace AFOAIO
             try
             {
                 streamReader = new StreamReader(openFileDialog.FileName, Encoding.GetEncoding(1254));
-                RowCount = base.Matches(streamReader.ReadToEnd(), "\n");
+                RowCount = base.T_Matches(streamReader.ReadToEnd(), "\n");
                 streamReader = new StreamReader(openFileDialog.FileName, Encoding.GetEncoding(1254));
                 Fields = streamReader.ReadLine().Split(';');
                 for (int a = 1; a < RowCount; a++)
@@ -152,19 +151,19 @@ namespace AFOAIO
                     Application.DoEvents();
                     _Line = streamReader.ReadLine();
                     _CommandText = "Update " + TableName + " Set " + Yerlestir(_Line.Split(';')) + ((Where != null && Where != "") ? " Where " + Where : "");
-                    base.ExecuteNonQuery(_CommandText, Connectionstring);
-                    base.Log("Read : " + a.ToString() + "/" + (RowCount - 1));
+                    base.D_ExecuteNonQuery(_CommandText, Connectionstring);
+                    base.T_Log("Read : " + a.ToString() + "/" + (RowCount - 1));
                 }
-                base.Log("Read complated.");
+                base.T_Log("Read complated.");
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
+                base.T_Log(ex.Message);
             }
         }
         #endregion
         #endregion
-        #region Yardımcı Methodlar
+        #region Support Methods
         private string Split(string Line)
         {
             string answer = "";
@@ -180,7 +179,7 @@ namespace AFOAIO
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
+                base.T_Log(ex.Message);
             }
             return (answer.Remove(answer.LastIndexOf(',')));
         }
@@ -196,7 +195,7 @@ namespace AFOAIO
             }
             catch (Exception ex)
             {
-                base.Log(ex.Message);
+                base.T_Log(ex.Message);
             }
             return (answer.Remove(answer.LastIndexOf(',')));
         }
